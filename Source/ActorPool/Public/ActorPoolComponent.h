@@ -9,7 +9,7 @@
 struct FActorSpawnParameters;
 class APoolActor;
 
-UCLASS()
+UCLASS(meta = (BlueprintSpawnableComponent))
 class ACTORPOOL_API UActorPoolComponent : public UActorComponent
 {
 	GENERATED_BODY()
