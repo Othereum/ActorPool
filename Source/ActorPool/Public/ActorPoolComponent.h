@@ -1,4 +1,4 @@
-// Copyright (c) 2019, Seokjin Lee
+// Copyright (c) 2019, Seokjin Lee. All rights reserved.
 
 #pragma once
 
