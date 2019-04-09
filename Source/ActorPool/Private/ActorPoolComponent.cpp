@@ -42,7 +42,7 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const F
 		NewActor->SpawnCollisionHandlingMethod = CollisionHandlingMethod;
 		if (!NewActor->HandleCollision()) return nullptr;
 
-		AvailableActors.RemoveAt(AvailableActors.Num() - 1);
+		AvailableActors.RemoveAt(AvailableActors.Num() - 1, 1, false);
 	}
 	else
 	{
