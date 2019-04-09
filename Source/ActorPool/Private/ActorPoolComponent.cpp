@@ -16,16 +16,11 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, ESpawnA
 APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param)
 {
 	if (!ActorClass) return nullptr;
-	
+
 	UWorld* const World = GetWorld();
 	if (!World) return nullptr;
 
-	AActor* Template = Param.Template;
-
-	if (!Template)
-	{
-		Template = ActorClass->GetDefaultObject<AActor>();
-	}
+	const AActor* const Template = Param.Template ? Param.Template : ActorClass->GetDefaultObject<AActor>();
 
 	const ESpawnActorCollisionHandlingMethod CollisionHandlingMethod = SelectCollisionHandlingMethod(Param, Template);
 	if (CollisionHandlingMethod == ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding && EncroachingBlockingGeometry(Template, Transform))
@@ -37,7 +32,12 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const F
 	if (AvailableActors.Num() > 0)
 	{
 		NewActor = AvailableActors.Last();
-		NewActor->SetActorTransform({ Transform.GetRotation(), Transform.GetLocation(), Template->GetActorScale() * Transform.GetScale3D() });
+		NewActor->SetActorLocationAndRotation(Transform.GetLocation(), Transform.GetRotation());
+		USceneComponent* TemplateRoot = Template->GetRootComponent();
+		if (TemplateRoot)
+		{
+			TemplateRoot->SetRelativeScale3D(TemplateRoot->RelativeScale3D * Transform.GetScale3D());
+		}
 
 		NewActor->SpawnCollisionHandlingMethod = CollisionHandlingMethod;
 		if (!NewActor->HandleCollision()) return nullptr;
@@ -79,7 +79,7 @@ void UActorPoolComponent::ReturnActor(APoolActor* Actor)
 	AvailableActors.Add(Actor);
 }
 
-ESpawnActorCollisionHandlingMethod UActorPoolComponent::SelectCollisionHandlingMethod(const FActorSpawnParameters& Param, AActor* Template)
+ESpawnActorCollisionHandlingMethod UActorPoolComponent::SelectCollisionHandlingMethod(const FActorSpawnParameters& Param, const AActor* Template)
 {
 	ESpawnActorCollisionHandlingMethod CollisionHandlingOverride = Param.SpawnCollisionHandlingOverride;
 
@@ -98,7 +98,7 @@ ESpawnActorCollisionHandlingMethod UActorPoolComponent::SelectCollisionHandlingM
 	return (CollisionHandlingOverride == ESpawnActorCollisionHandlingMethod::Undefined) ? Template->SpawnCollisionHandlingMethod : CollisionHandlingOverride;
 }
 
-bool UActorPoolComponent::EncroachingBlockingGeometry(AActor* Template, const FTransform& UserTransform)
+bool UActorPoolComponent::EncroachingBlockingGeometry(const AActor* Template, const FTransform& UserTransform)
 {
 	USceneComponent* const TemplateRootComponent = Template->GetRootComponent();
 

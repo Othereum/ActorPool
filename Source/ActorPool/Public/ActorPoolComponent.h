@@ -10,7 +10,7 @@ struct FActorSpawnParameters;
 class APoolActor;
 
 UCLASS(meta = (BlueprintSpawnableComponent))
-class ACTORPOOL_API UActorPoolComponent : public UActorComponent
+class SAUCEWICH_API UActorPoolComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -53,8 +53,8 @@ private:
 
 	TArray<APoolActor*> AvailableActors;
 
-	ESpawnActorCollisionHandlingMethod SelectCollisionHandlingMethod(const FActorSpawnParameters& Param, AActor* Template);
-	bool EncroachingBlockingGeometry(AActor* Template, const FTransform& UserTransform);
+	ESpawnActorCollisionHandlingMethod SelectCollisionHandlingMethod(const FActorSpawnParameters& Param, const AActor* Template);
+	bool EncroachingBlockingGeometry(const AActor* Template, const FTransform& UserTransform);
 
 	static const FActorSpawnParameters DefaultSpawnParameters;
 };
