@@ -15,6 +15,8 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, ESpawnA
 
 APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param)
 {
+	if (!ActorClass) return nullptr;
+	
 	UWorld* const World = GetWorld();
 	if (!World) return nullptr;
 
