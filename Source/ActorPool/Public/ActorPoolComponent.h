@@ -15,6 +15,7 @@ class ACTORPOOL_API UActorPoolComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+	// Returns the actor waiting to be used. If no actors, creates a new one.
 	UFUNCTION(BlueprintCallable, Category = ActorPoolComponent)
 	APoolActor* SpawnActor(const FTransform& Transform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner, APawn* Instigator);
 	APoolActor* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters);
@@ -24,19 +25,19 @@ public:
 	template<class T>
 	T* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters)
 	{
-		return CastChecked<T>(SpawnActor(Transform, Param));
+		return CastChecked<T>(SpawnActor(Transform, Param), ECastCheckedType::NullAllowed);
 	}
 
 	template<class T>
 	T* SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param = DefaultSpawnParameters)
 	{
-		return CastChecked<T>(SpawnActor(Location, Rotation, Param));
+		return CastChecked<T>(SpawnActor(Location, Rotation, Param), ECastCheckedType::NullAllowed);
 	}
 
 	template<class T>
 	T* SpawnActor(const FActorSpawnParameters& Param = DefaultSpawnParameters)
 	{
-		return CastChecked<T>(SpawnActor(Param));
+		return CastChecked<T>(SpawnActor(Param), ECastCheckedType::NullAllowed);
 	}
 
 	void SetDefaultActorClass(const TSubclassOf<APoolActor>& Class);
@@ -51,6 +52,9 @@ private:
 	void ReturnActor(APoolActor* Actor);
 
 	TArray<APoolActor*> AvailableActors;
+
+	ESpawnActorCollisionHandlingMethod SelectCollisionHandlingMethod(const FActorSpawnParameters& Param, AActor* Template);
+	bool EncroachingBlockingGeometry(AActor* Template, const FTransform& UserTransform);
 
 	static const FActorSpawnParameters DefaultSpawnParameters;
 };
