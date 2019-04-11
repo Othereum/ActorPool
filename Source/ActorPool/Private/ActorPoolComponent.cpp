@@ -33,10 +33,10 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const F
 	{
 		NewActor = AvailableActors.Last();
 		NewActor->SetActorLocationAndRotation(Transform.GetLocation(), Transform.GetRotation());
-		USceneComponent* TemplateRoot = Template->GetRootComponent();
+		const USceneComponent* const TemplateRoot = Template->GetRootComponent();
 		if (TemplateRoot)
 		{
-			TemplateRoot->SetRelativeScale3D(TemplateRoot->RelativeScale3D * Transform.GetScale3D());
+			NewActor->SetActorScale3D(TemplateRoot->RelativeScale3D * Transform.GetScale3D());
 		}
 
 		NewActor->SpawnCollisionHandlingMethod = CollisionHandlingMethod;
