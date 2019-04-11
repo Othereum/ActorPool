@@ -24,7 +24,7 @@ void APoolActor::StartUsing(UActorPoolComponent* InPool)
 	if (Pool)
 	{
 		APoolActor* const DefaultActor = GetClass()->GetDefaultObject<APoolActor>();
-		SetActorTickEnabled(DefaultActor->IsActorTickEnabled());
+		SetActorTickEnabled(DefaultActor->PrimaryActorTick.bCanEverTick);
 		SetActorHiddenInGame(DefaultActor->bHidden);
 		BeginReuse();
 		BP_BeginReuse();
@@ -37,46 +37,53 @@ void APoolActor::StartUsing(UActorPoolComponent* InPool)
 
 bool APoolActor::HandleCollision()
 {
-	SetActorEnableCollision(GetClass()->GetDefaultObject<AActor>()->GetActorEnableCollision());
+	bool bCanSpawn = true;
 
-	switch (SpawnCollisionHandlingMethod)
+	const bool bEnableCollision = GetClass()->GetDefaultObject<AActor>()->GetActorEnableCollision();
+	if (bEnableCollision)
 	{
-	case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn:
-	{
-		FVector AdjustedLocation = GetActorLocation();
-		FRotator AdjustedRotation = GetActorRotation();
-		if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+		SetActorEnableCollision(true);
+
+		switch (SpawnCollisionHandlingMethod)
 		{
-			SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
-		}
-	}
-	break;
-	case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding:
-	{
-		FVector AdjustedLocation = GetActorLocation();
-		FRotator AdjustedRotation = GetActorRotation();
-		if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+		case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn:
 		{
-			SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
-		}
-		else
-		{
-			SetActorEnableCollision(false);
-			return false;
-		}
-	}
-	break;
-	case ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding:
-		if (GetWorld()->EncroachingBlockingGeometry(this, GetActorLocation(), GetActorRotation()))
-		{
-			SetActorEnableCollision(false);
-			return false;
+			FVector AdjustedLocation = GetActorLocation();
+			FRotator AdjustedRotation = GetActorRotation();
+			if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+			{
+				SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
+			}
 		}
 		break;
-	case ESpawnActorCollisionHandlingMethod::Undefined:
-	case ESpawnActorCollisionHandlingMethod::AlwaysSpawn:
-	default:
+		case ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding:
+		{
+			FVector AdjustedLocation = GetActorLocation();
+			FRotator AdjustedRotation = GetActorRotation();
+			if (GetWorld()->FindTeleportSpot(this, AdjustedLocation, AdjustedRotation))
+			{
+				SetActorLocationAndRotation(AdjustedLocation, AdjustedRotation, false, nullptr, ETeleportType::TeleportPhysics);
+			}
+			else
+			{
+				SetActorEnableCollision(false);
+				bCanSpawn = false;
+			}
+		}
 		break;
+		case ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding:
+			if (GetWorld()->EncroachingBlockingGeometry(this, GetActorLocation(), GetActorRotation()))
+			{
+				SetActorEnableCollision(false);
+				bCanSpawn = false;
+			}
+			break;
+		case ESpawnActorCollisionHandlingMethod::Undefined:
+		case ESpawnActorCollisionHandlingMethod::AlwaysSpawn:
+		default:
+			break;
+		}
 	}
-	return true;
+
+	return bCanSpawn;
 }
