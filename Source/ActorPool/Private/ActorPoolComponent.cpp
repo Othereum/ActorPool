@@ -4,21 +4,30 @@
 #include "Engine/World.h"
 #include "PoolActor.h"
 
-APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner, APawn* Instigator)
+DECLARE_LOG_CATEGORY_CLASS(LogActorPool, Log, All)
+
+APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner, APawn* Instigator, bool& bOutReused)
 {
 	FActorSpawnParameters Param;
 	Param.SpawnCollisionHandlingOverride = CollisionHandlingOverride;
 	Param.Owner = Owner;
 	Param.Instigator = Instigator;
-	return SpawnActor(Transform, Param);
+	return SpawnActor(Transform, Param, &bOutReused);
 }
 
-APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param)
+APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param, bool* bOutReused)
 {
-	if (!ActorClass) return nullptr;
+	if (!ActorClass)
+	{
+		UE_LOG(LogActorPool, Warning, TEXT(__FUNCTION__" failed because no class was specified"));
+		return nullptr;
+	}
 
 	UWorld* const World = GetWorld();
-	if (!World) return nullptr;
+	if (!World)
+	{
+		return nullptr;
+	}
 
 	const AActor* const Template = Param.Template ? Param.Template : ActorClass->GetDefaultObject<AActor>();
 
@@ -29,6 +38,7 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const F
 	}
 
 	APoolActor* NewActor;
+	bool bReused;
 	if (AvailableActors.Num() > 0)
 	{
 		NewActor = AvailableActors.Last();
@@ -44,27 +54,33 @@ APoolActor* UActorPoolComponent::SpawnActor(const FTransform& Transform, const F
 		if (!bCanSpawn) return nullptr;
 
 		AvailableActors.RemoveAt(AvailableActors.Num() - 1, 1, false);
+		bReused = true;
 	}
 	else
 	{
 		NewActor = static_cast<APoolActor*>(World->SpawnActor(ActorClass, &Transform, Param));
+		bReused = false;
 	}
 
 	if (NewActor)
 	{
 		NewActor->StartUsing(this);
+		if (bOutReused)
+		{
+			*bOutReused = bReused;
+		}
 	}
 	return NewActor;
 }
 
-APoolActor* UActorPoolComponent::SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param)
+APoolActor* UActorPoolComponent::SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param, bool* bOutReused)
 {
-	return SpawnActor({ Rotation, Location, FVector::OneVector }, Param);
+	return SpawnActor({ Rotation, Location, FVector::OneVector }, Param, bOutReused);
 }
 
-APoolActor* UActorPoolComponent::SpawnActor(const FActorSpawnParameters& Param)
+APoolActor* UActorPoolComponent::SpawnActor(const FActorSpawnParameters& Param, bool* bOutReused)
 {
-	return SpawnActor(FTransform::Identity, Param);
+	return SpawnActor(FTransform::Identity, Param, bOutReused);
 }
 
 void UActorPoolComponent::SetDefaultActorClass(const TSubclassOf<APoolActor>& Class)

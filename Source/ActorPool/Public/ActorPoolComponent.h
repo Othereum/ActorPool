@@ -17,27 +17,27 @@ class SAUCEWICH_API UActorPoolComponent : public UActorComponent
 public:
 	// Returns the actor waiting to be used. If no actors, creates a new one.
 	UFUNCTION(BlueprintCallable, Category = ActorPoolComponent)
-	APoolActor* SpawnActor(const FTransform& Transform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner, APawn* Instigator);
-	APoolActor* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters);
-	APoolActor* SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param = DefaultSpawnParameters);
-	APoolActor* SpawnActor(const FActorSpawnParameters& Param = DefaultSpawnParameters);
+	APoolActor* SpawnActor(const FTransform& Transform, ESpawnActorCollisionHandlingMethod CollisionHandlingOverride, AActor* Owner, APawn* Instigator, bool& bOutReused);
+	APoolActor* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr);
+	APoolActor* SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr);
+	APoolActor* SpawnActor(const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr);
 
 	template<class T>
-	T* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters)
+	T* SpawnActor(const FTransform& Transform, const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr)
 	{
-		return CastChecked<T>(SpawnActor(Transform, Param), ECastCheckedType::NullAllowed);
+		return CastChecked<T>(SpawnActor(Transform, Param, bOutReused), ECastCheckedType::NullAllowed);
 	}
 
 	template<class T>
-	T* SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param = DefaultSpawnParameters)
+	T* SpawnActor(const FVector& Location, const FRotator& Rotation, const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr)
 	{
-		return CastChecked<T>(SpawnActor(Location, Rotation, Param), ECastCheckedType::NullAllowed);
+		return CastChecked<T>(SpawnActor(Location, Rotation, Param, bOutReused), ECastCheckedType::NullAllowed);
 	}
 
 	template<class T>
-	T* SpawnActor(const FActorSpawnParameters& Param = DefaultSpawnParameters)
+	T* SpawnActor(const FActorSpawnParameters& Param = DefaultSpawnParameters, bool* bOutReused = nullptr)
 	{
-		return CastChecked<T>(SpawnActor(Param), ECastCheckedType::NullAllowed);
+		return CastChecked<T>(SpawnActor(Param, bOutReused), ECastCheckedType::NullAllowed);
 	}
 
 	void SetDefaultActorClass(const TSubclassOf<APoolActor>& Class);
