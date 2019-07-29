@@ -4,7 +4,7 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 
-void AActorPoolProjectile::BeginReuse()
+void AActorPoolProjectile::OnActivated()
 {
 	ProjectileMovement->SetUpdatedComponent(RootComponent);
 	const UProjectileMovementComponent* const DefaultMovement = GetClass()->GetDefaultObject<AActorPoolProjectile>()->ProjectileMovement;
@@ -37,6 +37,6 @@ void AActorPoolProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActo
 	{
 		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 	}
-	// Call ReturnToPool instead of Destroy
-	ReturnToPool();
+
+	Release();
 }

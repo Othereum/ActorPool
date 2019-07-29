@@ -11,15 +11,13 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h"
-#include "ActorPoolComponent.h"
+#include "ActorPool.h"
+#include "ActorPoolGameInstance.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
 AActorPoolCharacter::AActorPoolCharacter()
 {
-	// Create a ActorPoolComponent
-	ProjectilePool = CreateDefaultSubobject<UActorPoolComponent>("ProjectilePool");
-
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
 	BaseTurnRate = 45.f;
@@ -85,6 +83,8 @@ void AActorPoolCharacter::BeginPlay()
 		VR_Gun->SetHiddenInGame(true, true);
 		Mesh1P->SetHiddenInGame(false, true);
 	}
+
+	ProjectilePool = CastChecked<UActorPoolGameInstance>(GetGameInstance())->GetActorPool();
 }
 
 void AActorPoolCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -118,8 +118,7 @@ void AActorPoolCharacter::OnFire()
 		{
 			const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
 			const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-			// World->SpawnActor<AActorPoolProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			ProjectilePool->SpawnActor(SpawnLocation, SpawnRotation);
+			ProjectilePool->SpawnActor(ProjectileClass, {SpawnRotation, SpawnLocation}, FActorSpawnParameters{});
 		}
 		else
 		{
@@ -129,8 +128,7 @@ void AActorPoolCharacter::OnFire()
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-			// World->SpawnActor<AActorPoolProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			ProjectilePool->SpawnActor(SpawnLocation, SpawnRotation, ActorSpawnParams);
+			ProjectilePool->SpawnActor(ProjectileClass, {SpawnRotation, SpawnLocation}, ActorSpawnParams);
 		}
 	}
 

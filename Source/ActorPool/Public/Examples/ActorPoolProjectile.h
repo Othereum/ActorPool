@@ -7,12 +7,11 @@
 #include "ActorPoolProjectile.generated.h"
 
 UCLASS(config=Game)
-class AActorPoolProjectile : public APoolActor // Inherit PoolActor
+class AActorPoolProjectile : public APoolActor
 {
 	GENERATED_BODY()
 
-	// Called when reused. It will not be called at first use. See BeginPlay in this case.
-	virtual void BeginReuse() override;
+	virtual void OnActivated() override;
 
 	UPROPERTY(VisibleDefaultsOnly, Category=Projectile)
 	class USphereComponent* CollisionComp;

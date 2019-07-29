@@ -13,9 +13,7 @@ class AActorPoolCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	// Actor pool for projectiles
-	UPROPERTY(VisibleAnywhere)
-	class UActorPoolComponent* ProjectilePool;
+	class AActorPool* ProjectilePool;
 
 	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
 	class USkeletalMeshComponent* Mesh1P;

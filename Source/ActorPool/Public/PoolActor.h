@@ -1,33 +1,26 @@
-// Copyright (c) 2019, Seokjin Lee. All rights reserved.
+// Copyright 2019 Seokjin Lee. All Rights Reserved.
 
 #pragma once
 
-#include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "PoolActor.generated.h"
 
 UCLASS()
-class ACTORPOOL_API APoolActor : public AActor
+class APoolActor : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
-	APoolActor() = default;
-
-	// Returns this actor to the pool. You should use this function instead of the Destroy.
-	UFUNCTION(BlueprintCallable, Category = PoolActor)
-	void ReturnToPool();
+public:
+	void Release(bool bForce = false);
+	void Activate(bool bForce = false);
+	void LifeSpanExpired() override { Release(); }
+	void SetPool(class AActorPool* NewPool) { Pool = NewPool; }
 
 protected:
-	// Called when reused. It will not be called at first use. See BeginPlay in this case.
-	UFUNCTION(BlueprintImplementableEvent, Category = PoolActor, DisplayName = BeginReuse)
-	void BP_BeginReuse();
-	virtual void BeginReuse() {};
+	virtual void OnReleased() {}
+	virtual void OnActivated() {}
 
 private:
-	friend class UActorPoolComponent;
-	void StartUsing(UActorPoolComponent* InPool);
-	bool HandleCollision();
-
-	UActorPoolComponent* Pool;
+	AActorPool* Pool;
+	uint8 bActivated : 1;
 };
